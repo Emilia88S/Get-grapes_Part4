@@ -104,7 +104,7 @@
 
 <div id="hud">
     ❤️ HP: <span id="playerHP">100</span><br>
-    🍇 Magic Power: <span id="power">100</span>
+    🍇 Magic Power: ∞
 </div>
 
 <div id="bossHUD">
@@ -132,7 +132,6 @@ const hud = document.getElementById("hud");
 const bossHUD = document.getElementById("bossHUD");
 
 const playerHPText = document.getElementById("playerHP");
-const powerText = document.getElementById("power");
 const bossHealthText = document.getElementById("bossHealth");
 
 const dialogue = document.getElementById("dialogue");
@@ -150,7 +149,6 @@ const ending = document.getElementById("ending");
 let scene = "town";
 
 let playerHP = 100;
-let grapePower = 100;
 let bossHP = 100;
 
 let keys = {};
@@ -180,14 +178,14 @@ document.addEventListener("keydown", function(e) {
 
     keys[e.key.toLowerCase()] = true;
 
-    // SPACE = attack
+    // SPACE = infinite grape attack
     if (
         e.key === " " &&
-        scene === "battle" &&
-        grapePower > 0
+        scene === "battle"
     ) {
         throwGrape();
     }
+
 });
 
 document.addEventListener("keyup", function(e) {
@@ -207,6 +205,7 @@ function say(text, time = 3000) {
     setTimeout(() => {
         dialogue.style.display = "none";
     }, time);
+
 }
 
 
@@ -217,7 +216,6 @@ function say(text, time = 3000) {
 function updateHUD() {
 
     playerHPText.textContent = Math.max(0, playerHP);
-    powerText.textContent = Math.max(0, grapePower);
     bossHealthText.textContent = Math.max(0, bossHP);
 
 }
@@ -246,6 +244,7 @@ function drawBoss() {
 
     ctx.font = "18px Arial";
     ctx.fillStyle = "white";
+
     ctx.fillText(
         "LEMONADE GUY",
         boss.x - 65,
@@ -274,14 +273,31 @@ function drawGrape(x, y) {
 function drawTown() {
 
     ctx.fillStyle = "#76c043";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
     // Houses
     ctx.fillStyle = "#d88b5b";
 
-    ctx.fillRect(80, 160, 180, 140);
-    ctx.fillRect(820, 160, 180, 140);
+    ctx.fillRect(
+        80,
+        160,
+        180,
+        140
+    );
 
+    ctx.fillRect(
+        820,
+        160,
+        180,
+        140
+    );
+
+    // Roofs
     ctx.fillStyle = "#8b4513";
 
     ctx.beginPath();
@@ -302,7 +318,7 @@ function drawTown() {
     ctx.fillText("🌳", 350, 160);
     ctx.fillText("🌳", 680, 170);
 
-    // Grapes everywhere
+    // Magical grapes
     drawGrape(300,500);
     drawGrape(450,250);
     drawGrape(650,500);
@@ -310,7 +326,12 @@ function drawTown() {
 
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
-    ctx.fillText("🍇 GRAPE TOWN 🍇", 400, 70);
+
+    ctx.fillText(
+        "🍇 GRAPE TOWN 🍇",
+        400,
+        70
+    );
 
 }
 
@@ -323,13 +344,25 @@ function drawBattle() {
 
     // Dark background
     ctx.fillStyle = "#080010";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Purple ground
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    // Dark ground
     ctx.fillStyle = "#180025";
-    ctx.fillRect(0, 500, canvas.width, 220);
 
-    // Strange objects
+    ctx.fillRect(
+        0,
+        500,
+        canvas.width,
+        220
+    );
+
+    // Decorations
     ctx.font = "60px Arial";
 
     ctx.fillText("💀", 100, 250);
@@ -342,14 +375,24 @@ function drawBattle() {
 
     // Player grapes
     for (let attack of playerAttacks) {
-        drawGrape(attack.x, attack.y);
+
+        drawGrape(
+            attack.x,
+            attack.y
+        );
+
     }
 
     // Lemon attacks
     for (let attack of bossAttacks) {
 
         ctx.font = "30px Arial";
-        ctx.fillText("🍋", attack.x - 15, attack.y + 10);
+
+        ctx.fillText(
+            "🍋",
+            attack.x - 15,
+            attack.y + 10
+        );
 
     }
 
@@ -362,7 +405,10 @@ function drawBattle() {
 
 function movePlayer() {
 
-    if (scene !== "town" && scene !== "battle") {
+    if (
+        scene !== "town" &&
+        scene !== "battle"
+    ) {
         return;
     }
 
@@ -394,40 +440,43 @@ function movePlayer() {
         player.x += player.speed;
     }
 
-    // Keep player inside screen
-
+    // Keep duck inside screen
     player.x = Math.max(
         30,
-        Math.min(canvas.width - 30, player.x)
+        Math.min(
+            canvas.width - 30,
+            player.x
+        )
     );
 
     player.y = Math.max(
         50,
-        Math.min(canvas.height - 30, player.y)
+        Math.min(
+            canvas.height - 30,
+            player.y
+        )
     );
 
 }
 
 
 // ===============================
-// THROW GRAPE
+// INFINITE GRAPE ATTACK
 // ===============================
 
 function throwGrape() {
 
-    if (grapePower <= 0) {
-        return;
-    }
-
-    grapePower -= 5;
+    // NO MAGIC POWER LIMIT! 🍇♾️
 
     playerAttacks.push({
-        x: player.x + 30,
-        y: player.y,
-        speed: 8
-    });
 
-    updateHUD();
+        x: player.x + 30,
+
+        y: player.y,
+
+        speed: 8
+
+    });
 
 }
 
@@ -443,9 +492,13 @@ function bossAttack() {
     }
 
     bossAttacks.push({
+
         x: boss.x - 20,
+
         y: boss.y,
+
         speed: 4
+
     });
 
 }
@@ -457,16 +510,23 @@ function bossAttack() {
 
 function updatePlayerAttacks() {
 
-    for (let i = playerAttacks.length - 1; i >= 0; i--) {
+    for (
+        let i = playerAttacks.length - 1;
+        i >= 0;
+        i--
+    ) {
 
         let attack = playerAttacks[i];
 
         attack.x += attack.speed;
 
-        // Hit boss
+        // Check if grape hits boss
         let distance = Math.hypot(
+
             attack.x - boss.x,
+
             attack.y - boss.y
+
         );
 
         if (distance < 55) {
@@ -478,17 +538,24 @@ function updatePlayerAttacks() {
             updateHUD();
 
             if (bossHP <= 0) {
+
                 bossDefeated();
+
                 return;
+
             }
 
             continue;
+
         }
 
-        // Remove if off screen
+        // Remove grape if off screen
         if (attack.x > canvas.width) {
+
             playerAttacks.splice(i, 1);
+
         }
+
     }
 
 }
@@ -500,15 +567,22 @@ function updatePlayerAttacks() {
 
 function updateBossAttacks() {
 
-    for (let i = bossAttacks.length - 1; i >= 0; i--) {
+    for (
+        let i = bossAttacks.length - 1;
+        i >= 0;
+        i--
+    ) {
 
         let attack = bossAttacks[i];
 
         attack.x -= attack.speed;
 
         let distance = Math.hypot(
+
             attack.x - player.x,
+
             attack.y - player.y
+
         );
 
         if (distance < 45) {
@@ -524,14 +598,19 @@ function updateBossAttacks() {
                 playerDied();
 
                 return;
+
             }
 
             continue;
+
         }
 
         if (attack.x < 0) {
+
             bossAttacks.splice(i, 1);
+
         }
+
     }
 
 }
@@ -543,12 +622,14 @@ function updateBossAttacks() {
 
 function playerDied() {
 
-    say("🦆 DUCK: NOOO! I have to try again!");
+    say(
+        "🦆 DUCK: NOOO! I have to try again!",
+        1500
+    );
 
     setTimeout(() => {
 
         playerHP = 100;
-        grapePower = 100;
 
         player.x = 200;
         player.y = 360;
@@ -558,7 +639,10 @@ function playerDied() {
 
         updateHUD();
 
-        say("🦆 DUCK: I'm back! I won't give up!");
+        say(
+            "🦆 DUCK: I'm back! I won't give up!",
+            2000
+        );
 
     }, 1500);
 
@@ -605,20 +689,18 @@ function bossDefeated() {
 
 
 // ===============================
-// START BOSS
+// START FINAL BOSS
 // ===============================
 
 function startBoss() {
 
-    // IMPORTANT:
-    // We change the scene to transition first.
-    // This prevents the transition from getting stuck.
-
+    // Start transition scene
     scene = "transition";
 
     bossHUD.style.display = "none";
 
-    transitionTitle.textContent = "FINAL BOSS";
+    transitionTitle.textContent =
+        "FINAL BOSS";
 
     transition.style.display = "flex";
 
@@ -629,22 +711,23 @@ function startBoss() {
         // Hide black screen
         transition.style.display = "none";
 
-        // NOW actually start the boss fight
+        // Start actual boss battle
         scene = "battle";
 
         bossHUD.style.display = "block";
 
-        // Reset everything
+        // Reset positions
         player.x = 200;
         player.y = 360;
 
         boss.x = 850;
         boss.y = 360;
 
+        // Reset health
         playerHP = 100;
-        grapePower = 100;
         bossHP = 100;
 
+        // Clear attacks
         playerAttacks = [];
         bossAttacks = [];
 
@@ -667,7 +750,9 @@ function startBoss() {
 setInterval(() => {
 
     if (scene === "battle") {
+
         bossAttack();
+
     }
 
 }, 1300);
@@ -681,7 +766,8 @@ function showPart5() {
 
     scene = "ending";
 
-    transitionTitle.textContent = "PART 5 WAKE UP???";
+    transitionTitle.textContent =
+        "PART 5 WAKE UP???";
 
     transition.style.display = "flex";
 
@@ -697,7 +783,7 @@ function showPart5() {
 
 
 // ===============================
-// STORY START
+// PART 4 STORY
 // ===============================
 
 function startStory() {
@@ -773,7 +859,7 @@ function startStory() {
 
 
 // ===============================
-// DRAW
+// MAIN DRAW
 // ===============================
 
 function draw() {
@@ -788,6 +874,7 @@ function draw() {
     if (scene === "town") {
 
         drawTown();
+
         drawDuck();
 
     }
@@ -812,6 +899,7 @@ function gameLoop() {
     if (scene === "battle") {
 
         updatePlayerAttacks();
+
         updateBossAttacks();
 
     }

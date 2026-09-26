@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Duck's Magical Grape Quest - Part 4</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: black;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+canvas {
+    display: block;
+    margin: auto;
+    background: black;
+}
+
+/* HUD */
+
+#hud {
+
+    position: absolute;
+
+    top: 15px;
+    left: 15px;
+
+    color: white;
+
+    background: rgba(0,0,0,0.75);
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    font-size: 20px;
+
+    z-index: 10;
+
+}
+
+/* BOSS HUD */
+
+#bossHUD {
+
+    position: absolute;
+
+    top: 15px;
+    right: 15px;
+
+    width: 300px;
+
+    background: rgba(0,0,0,0.8);
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    color: white;
+
+    display: none;
+
+    z-index: 10;
+
+}
+
+#bossName {
+
+    text-align: center;
+
+    font-size: 22px;
+
+    margin-bottom: 8px;
+
+}
+
+#bossBar {
+
+    width: 100%;
+
+    height: 25px;
+
+    background: #333;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+}
+
+#bossHealth {
+
+    height: 100%;
+
+    width: 100%;
+
+    background: red;
+
+}
+
+/* DIALOGUE */
+
+#dialogueBox {
+
+    position: absolute;
+
+    bottom: 20px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 85%;
+
+    max-width: 1000px;
+
+    background: rgba(0,0,0,0.9);
+
+    border: 3px solid white;
+
+    border-radius: 15px;
+
+    color: white;
+
+    padding: 18px;
+
+    z-index: 30;
+
+    display: none;
+
+}
+
+#speaker {
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+
+}
+
+#dialogue {
+
+    font-size: 20px;
+
+    line-height: 1.4;
+
+}
+
+#continueButton {
+
+    float: right;
+
+    margin-top: 12px;
+
+    padding: 10px 22px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #7c4dff;
+
+    color: white;
+
+    font-size: 17px;
+
+    cursor: pointer;
+
+}
+
+/* TRANSITION */
+
+#transition {
+
+    position: absolute;
+
+    inset: 0;
+
+    background: black;
+
+    color: white;
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 100;
+
+}
+
+#transitionTitle {
+
+    font-size: 75px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+}
+
+/* PART 5 */
+
+#part5 {
+
+    position: absolute;
+
+    inset: 0;
+
+    background: black;
+
+    color: white;
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    flex-direction: column;
+
+    z-index: 200;
+
+}
+
+#part5 h1 {
+
+    font-size: 75px;
+
+    text-align: center;
+
+    animation: pulse 1.5s infinite;
+
+}
+
+@keyframes pulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div id="game">
+
+<canvas id="canvas" width="1100" height="720"></canvas>
+
+
+<!-- HUD -->
+
+<div id="hud">
+
+🦆 Duck HP:
+<span id="playerHP">100</span>
+
+<br>
+
+🍇 Magical Power:
+<span id="power">100</span>
+
+</div>
+
+
+<!-- BOSS HUD -->
+
+<div id="bossHUD">
+
+<div id="bossName">
+
+🍋 LEMONADE GUY 🍋
+
+</div>
+
+<div id="bossBar">
+
+<div id="bossHealth"></div>
+
+</div>
+
+</div>
+
+
+<!-- DIALOGUE -->
+
+<div id="dialogueBox">
+
+<div id="speaker"></div>
+
+<div id="dialogue"></div>
+
+<button id="continueButton">
+
+Continue
+
+</button>
+
+</div>
+
+
+<!-- TRANSITION -->
+
+<div id="transition">
+
+<div id="transitionTitle">
+
+FINAL BOSS
+
+</div>
+
+</div>
+
+
+<!-- PART 5 -->
+
+<div id="part5">
+
+<h1>
+
+PART 5 WAKE UP???
+
+</h1>
+
+<p style="font-size:28px;">
+
+What happened...?
+
+</p>
+
+</div>
+
+</div>
+
+
+<script>
+
+
+/* =========================
+   VARIABLES
+========================= */
+
+const canvas =
+document.getElementById("canvas");
+
+const ctx =
+canvas.getContext("2d");
+
+
+let keys = {};
+
+let scene = "town";
+
+let playerHP = 100;
+
+let bossHP = 100;
+
+let dialogueActive = false;
+
+let battleStarted = false;
+
+let bossDefeated = false;
+
+let grapePower = 100;
+
+
+/* =========================
+   PLAYER
+========================= */
+
+let duck = {
+
+    x: 550,
+
+    y: 400,
+
+    size: 35,
+
+    speed: 5
+
+};
+
+
+/* =========================
+   BOSS
+========================= */
+
+let boss = {
+
+    x: 850,
+
+    y: 350,
+
+    size: 50,
+
+    speed: 2
+
+};
+
+
+/* =========================
+   ATTACKS
+========================= */
+
+let attacks = [];
+
+let bossAttacks = [];
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+document.addEventListener(
+"keydown",
+function(e) {
+
+    keys[e.key.toLowerCase()] = true;
+
+    if (
+        scene === "battle" &&
+        e.key.toLowerCase() === " " &&
+        !dialogueActive
+    ) {
+
+        playerAttack();
+
+    }
+
+});
+
+
+document.addEventListener(
+"keyup",
+function(e) {
+
+    keys[e.key.toLowerCase()] = false;
+
+});
+
+
+/* =========================
+   DIALOGUE
+========================= */
+
+function showDialogue(
+speaker,
+text
+) {
+
+    dialogueActive = true;
+
+    document.getElementById(
+        "dialogueBox"
+    ).style.display = "block";
+
+    document.getElementById(
+        "speaker"
+    ).innerText = speaker;
+
+    document.getElementById(
+        "dialogue"
+    ).innerText = text;
+
+}
+
+
+document.getElementById(
+"continueButton"
+).onclick = function() {
+
+    document.getElementById(
+        "dialogueBox"
+    ).style.display = "none";
+
+    dialogueActive = false;
+
+};
+
+
+/* =========================
+   DRAW TOWN
+========================= */
+
+function drawTown() {
+
+    ctx.fillStyle = "#72c7ff";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    ctx.fillStyle = "#69a94b";
+
+    ctx.fillRect(
+        0,
+        500,
+        canvas.width,
+        220
+    );
+
+
+    /* Houses */
+
+    ctx.fillStyle = "#d95757";
+
+    ctx.fillRect(
+        120,
+        300,
+        180,
+        200
+    );
+
+    ctx.fillRect(
+        800,
+        300,
+        180,
+        200
+    );
+
+
+    ctx.fillStyle = "#8b4513";
+
+    ctx.fillRect(
+        180,
+        410,
+        60,
+        90
+    );
+
+    ctx.fillRect(
+        860,
+        410,
+        60,
+        90
+    );
+
+
+    ctx.fillStyle = "white";
+
+    ctx.font = "35px Arial";
+
+    ctx.fillText(
+        "GRAPE TOWN",
+        430,
+        100
+    );
+
+
+    drawCharacters();
+
+}
+
+
+/* =========================
+   CHARACTERS
+========================= */
+
+function drawCharacters() {
+
+    ctx.font = "50px Arial";
+
+
+    ctx.fillText(
+        "🦆",
+        duck.x - 25,
+        duck.y + 15
+    );
+
+
+    ctx.fillText(
+        "🧙‍♂️",
+        470,
+        470
+    );
+
+
+    ctx.fillText(
+        "👴",
+        620,
+        470
+    );
+
+}
+
+
+/* =========================
+   DRAW BATTLE
+========================= */
+
+function drawBattle() {
+
+    /* Dark scary realm */
+
+    ctx.fillStyle = "#09050f";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /* Fog */
+
+    for(let i = 0; i < 12; i++) {
+
+        ctx.fillStyle =
+            "rgba(90,70,120,0.15)";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            (i * 137) % 1100,
+            (i * 89) % 650,
+            90,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    }
+
+
+    /* Ground */
+
+    ctx.fillStyle = "#15101d";
+
+    ctx.fillRect(
+        0,
+        600,
+        canvas.width,
+        120
+    );
+
+
+    /* Duck */
+
+    ctx.font = "55px Arial";
+
+    ctx.fillText(
+        "🦆",
+        duck.x - 27,
+        duck.y + 20
+    );
+
+
+    /* Lemonade Guy */
+
+    ctx.font = "65px Arial";
+
+    ctx.fillText(
+        "🍋",
+        boss.x - 32,
+        boss.y + 25
+    );
+
+
+    ctx.font = "18px Arial";
+
+    ctx.fillStyle = "white";
+
+    ctx.fillText(
+        "LEMONADE GUY",
+        boss.x - 60,
+        boss.y - 45
+    );
+
+
+    /* Player attacks */
+
+    attacks.forEach(
+        attack => {
+
+            ctx.font = "30px Arial";
+
+            ctx.fillText(
+                "🍇",
+                attack.x,
+                attack.y
+            );
+
+        }
+    );
+
+
+    /* Boss attacks */
+
+    bossAttacks.forEach(
+        attack => {
+
+            ctx.font = "30px Arial";
+
+            ctx.fillText(
+                "🍋",
+                attack.x,
+                attack.y
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================
+   MOVEMENT
+========================= */
+
+function movePlayer() {
+
+    if(dialogueActive)
+        return;
+
+
+    if(keys["w"] ||
+       keys["arrowup"]) {
+
+        duck.y -= duck.speed;
+
+    }
+
+
+    if(keys["s"] ||
+       keys["arrowdown"]) {
+
+        duck.y += duck.speed;
+
+    }
+
+
+    if(keys["a"] ||
+       keys["arrowleft"]) {
+
+        duck.x -= duck.speed;
+
+    }
+
+
+    if(keys["d"] ||
+       keys["arrowright"]) {
+
+        duck.x += duck.speed;
+
+    }
+
+
+    duck.x =
+        Math.max(
+            30,
+            Math.min(
+                canvas.width - 30,
+                duck.x
+            )
+        );
+
+
+    duck.y =
+        Math.max(
+            100,
+            Math.min(
+                570,
+                duck.y
+            )
+        );
+
+}
+
+
+/* =========================
+   PLAYER ATTACK
+========================= */
+
+function playerAttack() {
+
+    if(grapePower <= 0)
+        return;
+
+
+    attacks.push({
+
+        x: duck.x + 20,
+
+        y: duck.y,
+
+        speed: 8
+
+    });
+
+
+    grapePower -= 5;
+
+    document.getElementById(
+        "power"
+    ).innerText = grapePower;
+
+}
+
+
+/* =========================
+   UPDATE ATTACKS
+========================= */
+
+function updateAttacks() {
+
+    attacks.forEach(
+        attack => {
+
+            attack.x += attack.speed;
+
+        }
+    );
+
+
+    attacks =
+        attacks.filter(
+            attack =>
+                attack.x < canvas.width
+        );
+
+
+    /* Hit boss */
+
+    attacks.forEach(
+        attack => {
+
+            if(
+                Math.abs(
+                    attack.x - boss.x
+                ) < 50 &&
+
+                Math.abs(
+                    attack.y - boss.y
+                ) < 60
+            ) {
+
+                bossHP -= 5;
+
+                attack.x = 2000;
+
+                document.getElementById(
+                    "bossHealth"
+                ).style.width =
+                    bossHP + "%";
+
+
+                if(bossHP <= 0) {
+
+                    bossDefeated = true;
+
+                    endBattle();
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   BOSS ATTACK
+========================= */
+
+let bossAttackTimer = 0;
+
+
+function bossAttack() {
+
+    bossAttackTimer++;
+
+
+    if(
+        bossAttackTimer > 100 &&
+        !bossDefeated
+    ) {
+
+        bossAttackTimer = 0;
+
+
+        bossAttacks.push({
+
+            x: boss.x - 30,
+
+            y: boss.y,
+
+            speed: -5
+
+        });
+
+    }
+
+
+    bossAttacks.forEach(
+        attack => {
+
+            attack.x += attack.speed;
+
+        }
+    );
+
+
+    bossAttacks =
+        bossAttacks.filter(
+            attack =>
+                attack.x > -50
+        );
+
+
+    bossAttacks.forEach(
+        attack => {
+
+            if(
+                Math.abs(
+                    attack.x - duck.x
+                ) < 45 &&
+
+                Math.abs(
+                    attack.y - duck.y
+                ) < 50
+            ) {
+
+                playerHP -= 10;
+
+                attack.x = -1000;
+
+                document.getElementById(
+                    "playerHP"
+                ).innerText = playerHP;
+
+
+                if(playerHP <= 0) {
+
+                    respawn();
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   RESPAWN
+========================= */
+
+function respawn() {
+
+    playerHP = 100;
+
+    grapePower = 100;
+
+    duck.x = 200;
+
+    duck.y = 400;
+
+    bossAttacks = [];
+
+    document.getElementById(
+        "playerHP"
+    ).innerText = playerHP;
+
+    document.getElementById(
+        "power"
+    ).innerText = grapePower;
+
+
+    showDialogue(
+        "Duck",
+        "QUACK! I have to try again!"
+    );
+
+}
+
+
+/* =========================
+   START BOSS
+========================= */
+
+function startBoss() {
+
+    scene = "battle";
+
+    battleStarted = true;
+
+    document.getElementById(
+        "bossHUD"
+    ).style.display = "block";
+
+
+    duck.x = 200;
+
+    duck.y = 400;
+
+
+    boss.x = 850;
+
+    boss.y = 350;
+
+
+    bossHP = 100;
+
+    playerHP = 100;
+
+    grapePower = 100;
+
+
+    document.getElementById(
+        "bossHealth"
+    ).style.width = "100%";
+
+
+    showDialogue(
+        "Lemonade Guy",
+        "HAHAHAHA! Did you really think those magical grapes would save you?"
+    );
+
+}
+
+
+/* =========================
+   RETURN TO TOWN
+========================= */
+
+function returnToTown() {
+
+    scene = "town";
+
+    document.getElementById(
+        "bossHUD"
+    ).style.display = "none";
+
+
+    duck.x = 550;
+
+    duck.y = 400;
+
+
+    showDialogue(
+        "Wizard",
+        "WAKE UP"
+    );
+
+
+    setTimeout(
+        finishPart4,
+        3000
+    );
+
+}
+
+
+/* =========================
+   END BATTLE
+========================= */
+
+function endBattle() {
+
+    battleStarted = false;
+
+    showDialogue(
+        "Duck",
+        "We defeated the Lemonade Guy!"
+    );
+
+
+    setTimeout(
+        returnToTown,
+        3000
+    );
+
+}
+
+
+/* =========================
+   FINISH PART 4
+========================= */
+
+function finishPart4() {
+
+    document.getElementById(
+        "transition"
+    ).style.display = "flex";
+
+
+    document.getElementById(
+        "transitionTitle"
+    ).innerText =
+        "Part 5 WAKE UP???";
+
+
+    setTimeout(
+        () => {
+
+            document.getElementById(
+                "transition"
+            ).style.display = "none";
+
+
+            document.getElementById(
+                "part5"
+            ).style.display = "flex";
+
+        },
+        3000
+    );
+
+}
+
+
+/* =========================
+   START STORY
+========================= */
+
+function startStory() {
+
+    showDialogue(
+        "Wizard",
+        "We made it back to Grape Town with the final magical grapes!"
+    );
+
+
+    setTimeout(
+        () => {
+
+            showDialogue(
+                "Super Strong Wizard",
+                "Together, we can combine our powers!"
+            );
+
+        },
+        3000
+    );
+
+
+    setTimeout(
+        () => {
+
+            showDialogue(
+                "Wizard",
+                "MAGICAL GRAPE RAIN!!!"
+            );
+
+        },
+        6000
+    );
+
+
+    setTimeout(
+        () => {
+
+            showDialogue(
+                "Town",
+                "Everyone grabs a magical grape and eats it together!"
+            );
+
+        },
+        9000
+    );
+
+
+    setTimeout(
+        () => {
+
+            showDialogue(
+                "???",
+                "You really thought it would be that easy?"
+            );
+
+        },
+        12000
+    );
+
+
+    setTimeout(
+        () => {
+
+            showDialogue(
+                "Lemonade Guy",
+                "SURPRISE! IT WAS ME THE WHOLE TIME!"
+            );
+
+        },
+        15000
+    );
+
+
+    setTimeout(
+        () => {
+
+            document.getElementById(
+                "transition"
+            ).style.display = "flex";
+
+
+            document.getElementById(
+                "transitionTitle"
+            ).innerText =
+                "FINAL BOSS";
+
+
+            setTimeout(
+                startBoss,
+                3000
+            );
+
+        },
+        18000
+    );
+
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop() {
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    if(scene === "town") {
+
+        drawTown();
+
+    }
+
+
+    if(scene === "battle") {
+
+        movePlayer();
+
+        updateAttacks();
+
+        bossAttack();
+
+        drawBattle();
+
+    }
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =========================
+   START
+========================= */
+
+startStory();
+
+gameLoop();
+
+
+</script>
+
+</body>
+</html>
